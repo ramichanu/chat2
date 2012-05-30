@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+	<head>
+		<title>Chat con Node.js y Socket.io</title>
+		
+		<style>
+			
+			#chat{
+				display: block;
+				width: 400px;
+				background: #CCC;
+				margin: 30px auto;
+				text-align: center;
+				padding: 30px;
+				border-radius: 22px 22px 22px 22px;
+				box-shadow: 2px 5px 20px grey;
+			}
+			p{
+				font-family: Verdana;
+				font-size: 20px;
+				color:white;
+			}
+			
+			input{
+				display: block;
+				color:orange;
+				width: 200px;
+				height: 30px;
+				margin: auto;
+			}
+			#ventanaChat{
+				border: 1px solid orange;
+				width:370px;
+				height:200px;
+				margin: 10px;
+				text-align:left;
+				background:white;
+				overflow:scroll;
+				padding: 10px;
+			}
+		</style>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+		<script src="http://localhost:8080/socket.io/socket.io.js"></script>
+		<script type="text/javascript">
+			var websocket = io.connect("http://localhost:8080");
+			$(document).ready(function(){
+				iniciar();
+			});
+			function iniciar()
+			{
+				
+				$("#ventanaChat").hide();
+				$("#mensaje").hide();
+				$("#labelchat").hide();
+				color=randomcolor();
+				$("#nick").keydown(function(e){
+					if(e.keyCode==13)
+					{
+						$("#nick").fadeOut("slow");
+						$("#usu").fadeOut("slow");
+						$("#mensaje").fadeIn();
+						$("#ventanaChat").fadeIn();
+						$("#labelchat").fadeIn();
+						$("#mensaje").focus();
+						bajarScroll();
+						
+					}
+				});
+				$("#mensaje").keydown(function(e){
+					if(e.keyCode==13)
+					{
+						websocket.emit("enviarMensaje", "<font color='"+ color +"'>" + $("#nick").val() + ":</font> " +$("#mensaje").val());
+						$("#mensaje").val("");
+						$("#mensaje").focus();
+						
+					}
+				});
+
+				websocket.on("repartirMensajesServidor", recibirMensajes);
+				websocket.on("repartirHistorial",recibirHistorial);
+			}
+			
+			function recibirMensajes(mensaje)
+			{
+				$("#ventanaChat").append(mensaje + "<br>");
+				bajarScroll();
+			}
+			function recibirHistorial(mensaje)
+			{
+				$("#ventanaChat").append(mensaje);			
+			}
+			function randomcolor(){ 
+				return "#"+((1<<24)*Math.random()|0).toString(16);
+			}
+			function bajarScroll(){
+				var objDiv = document.getElementById("ventanaChat");
+				objDiv.scrollTop = objDiv.scrollHeight;
+			}
+		
+		</script>
+	</head>
+	
+	<body>
+		<div id="chat">
+			<p id="usu">Escribe tu nombre de usuario</p>
+			<input type="text" id="nick" placeholder="Escribe tu nick"/>
+			<p id='labelchat'>Chat</p>
+			<div id="ventanaChat"></div>
+			<input type='text' id='mensaje' placeholder="Escribe tu mensaje" />
+			
+		</div>
+	</body>
+</html>
